@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 
 from event import Event
@@ -8,6 +8,26 @@ from log import Logger
 app = Flask(__name__)
 log = Logger.get_log('EventService')
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/api/events')
+def get_events():
+    db = None
+    try:
+        db = EventsDB()
+        events = db.get_recent_events()
+        # Convert events to a list of dictionaries for JSON serialization
+        event_dicts = [event.model_dump() for event in events]
+        return jsonify(event_dicts), 200
+    except Exception as e:
+        log.exception(e)
+        return jsonify({"status": "error", "message": "Failed to retrieve events"}), 500
+    finally:
+        if db:
+            db.close()
 
 @app.route('/log')
 def log_event():

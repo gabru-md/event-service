@@ -8,12 +8,12 @@ from log import Logger
 
 class EventsDB:
     def __init__(self):
-        # Database connection details, typically from environment variables
-        self.dbname = os.environ.get("POSTGRES_DB", "events")
-        self.user = os.environ.get("POSTGRES_USER", "manish")
-        self.password = os.environ.get("POSTGRES_PASSWORD", "password")
-        self.host = os.environ.get("POSTGRES_HOST", "localhost")
-        self.port = os.environ.get("POSTGRES_PORT", "5432")
+
+        self.dbname = os.environ.get("EVENTS_POSTGRES_DB", "events")
+        self.user = os.environ.get("EVENTS_POSTGRES_USER", "manish")
+        self.password = os.environ.get("EVENTS_POSTGRES_PASSWORD", "password")
+        self.host = os.environ.get("EVENTS_POSTGRES_HOST", "localhost")
+        self.port = os.environ.get("EVENTS_POSTGRES_PORT", "5432")
 
         self.log = Logger.get_log(self.__class__.__name__)
 
@@ -121,6 +121,28 @@ class EventsDB:
             cursor.execute("DELETE FROM events WHERE id=%s", (event_id,))
             self.conn.commit()
             return cursor.rowcount > 0
+
+    def get_recent_events(self, limit: int = 20) -> List[Event]:
+        """Retrieves the most recent events from the database."""
+        if not self.conn:
+            return []
+        with self.conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, event_type, timestamp, description, tags FROM events ORDER BY timestamp DESC LIMIT %s",
+                (limit,)
+            )
+            rows = cursor.fetchall()
+            events = []
+            for row in rows:
+                event_dict = {
+                    "id": row[0],
+                    "event_type": row[1],
+                    "timestamp": row[2],
+                    "description": row[3],
+                    "tags": row[4] if row[4] else []
+                }
+                events.append(Event(**event_dict))
+            return events
 
     def close(self):
         """Closes the database connection."""
