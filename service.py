@@ -1,3 +1,5 @@
+from crypt import methods
+
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 
@@ -29,14 +31,15 @@ def get_events():
         if db:
             db.close()
 
-@app.route('/log')
+@app.route('/log', methods=['POST'])
 def log_event():
     json_data = request.json
     db = None
     try:
         db = EventsDB()
         if json_data:
-            json_data["timestamp"] = datetime.now()
+            current_timestamp = datetime.now()
+            json_data["timestamp"] = int(current_timestamp.timestamp())
             event: Event = Event(**json_data)
             db.create(event)
     except Exception as e:
