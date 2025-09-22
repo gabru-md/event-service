@@ -2,8 +2,10 @@ import psycopg2
 from typing import Optional, List
 from event import Event
 import os
-
+from dotenv import load_dotenv
 from log import Logger
+
+load_dotenv()
 
 
 class EventsDB:
