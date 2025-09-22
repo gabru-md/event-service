@@ -43,7 +43,7 @@ def log_event():
             current_timestamp = datetime.now()
             tags = json_data['tags']
             if tags:
-                json_data = [t.strip() for t in tags.split(',')]
+                json_data["tags"] = [t.strip() for t in tags.split(',')]
             else:
                 json_data["tags"] = []
             json_data["timestamp"] = int(current_timestamp.timestamp())
