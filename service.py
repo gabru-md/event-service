@@ -10,6 +10,7 @@ from log import Logger
 app = Flask(__name__)
 log = Logger.get_log('EventService')
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -31,6 +32,7 @@ def get_events():
         if db:
             db.close()
 
+
 @app.route('/log', methods=['POST'])
 def log_event():
     json_data = request.json
@@ -39,6 +41,11 @@ def log_event():
         db = EventsDB()
         if json_data:
             current_timestamp = datetime.now()
+            tags = json_data['tags']
+            if tags:
+                json_data = [t.strip() for t in tags.split(',')]
+            else:
+                json_data["tags"] = []
             json_data["timestamp"] = int(current_timestamp.timestamp())
             event: Event = Event(**json_data)
             db.create(event)
